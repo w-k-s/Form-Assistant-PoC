@@ -45,7 +45,7 @@ uv run uvicorn app.main:app --port 8000
 
 ## Next Steps
 
-- [ ] Sign-up or sign-in the user.
+- [x] Sign-up or sign-in the user.
 - [ ] Manager agent routes to appropriate sub-agent, depending on if the user wants to ask for general information or wants to complete the form. 
     
     For now:

@@ -10,7 +10,7 @@ from starlette.config import Config
 from app.config import settings
 from app.db.session import get_db
 from app.dependencies import get_current_user
-from app.models.conversation import User
+from app.users import User
 from app.services.auth import create_access_token
 
 router = APIRouter(prefix="/auth")

@@ -23,14 +23,16 @@ def build_graph():
     )
 
     async def call_model(state: AgentState, config: RunnableConfig) -> dict:
-        # user = config.get("configurable", {}).get("user")
+        user = config.get("configurable", {}).get("user")
 
-        system_content = "You are a helpful and concise assistant."
-        # if user:
-        #     system_content += (
-        #         f" The user's name is {user.get('name', 'there')}."
-        #         " Personalize your responses to them."
-        #     )
+        system_content = (
+            "You are a helpful and concise assistant. Always mention the user name"
+        )
+        if user:
+            system_content += (
+                f" The user's name is {user.get('name', 'there')}."
+                " Personalize your responses to them."
+            )
 
         messages = [SystemMessage(content=system_content)] + state["messages"]
         response = await llm.ainvoke(messages)
