@@ -72,6 +72,11 @@ uv run uvicorn app.main:app --port 8000
 - [ ] Manager agent routes to appropriate sub-agent, depending on if the user wants to ask for general information or wants to complete the form. 
     
     For now:
-    - If the user asks a question, Q&A agent replies with "I don't know."
+    - [x] If the user asks a question, Q&A agent replies with "I don't know."
     - If the user aks for information, RAG agent replied with "I can't find this information".
 - [ ] QA Agent will ask first question from SurveyJS survey
+
+## Useful Resources
+
+- [Subagent Architecture Tutorial]()
+- [Handoff Architecture Tutorial](https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs-customer-support) 

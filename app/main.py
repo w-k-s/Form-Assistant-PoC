@@ -1,6 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +12,11 @@ from app.agent.graph import build_graph
 from app.api import auth, chat, deadlines, pages
 from app.config import settings
 from app.db.session import engine
+from app.logging import setup_logging
+
+setup_logging()
+
+logger = structlog.get_logger(__name__)
 
 
 @asynccontextmanager
@@ -22,8 +28,9 @@ async def lifespan(app: FastAPI):
     )
     async with AsyncPostgresSaver.from_conn_string(pg_conn_str) as checkpointer:
         await checkpointer.setup()
-        graph = build_graph().compile(checkpointer=checkpointer)
+        graph = build_graph(checkpointer=checkpointer)
         chat.set_graph(graph, checkpointer)
+        logger.info("app started")
 
         yield
 
