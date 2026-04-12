@@ -1,0 +1,18 @@
+<div id="thread-list" class="flex flex-col gap-1">
+  {% for thread in threads %}
+    <button
+      hx-get="/api/threads/{{ thread.id }}"
+      hx-target="#thread-list"
+      hx-swap="outerHTML"
+      class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors truncate
+        {% if active_thread_id is defined and active_thread_id == thread.id|string %}
+          bg-accent text-accent-foreground font-medium
+        {% elif active_thread is defined and active_thread.id == thread.id %}
+          bg-accent text-accent-foreground font-medium
+        {% else %}
+          text-muted-foreground hover:bg-accent hover:text-accent-foreground
+        {% endif %}">
+      {{ thread.title }}
+    </button>
+  {% endfor %}
+</div>

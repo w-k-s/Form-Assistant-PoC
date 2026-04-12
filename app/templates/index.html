@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}AI Chat{% endblock %}
+
+{% block content %}
+<div class="flex h-full">
+
+  <!-- Sidebar -->
+  <aside class="w-64 border-r border-border bg-card flex flex-col shrink-0">
+    <div class="p-3 border-b border-border">
+      <button
+        hx-post="/api/threads"
+        hx-target="#thread-list"
+        hx-swap="outerHTML"
+        class="w-full inline-flex items-center justify-center gap-2 text-sm font-medium px-3 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        New chat
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-2">
+      {% include "partials/thread_list.html" %}
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <div id="chat-area" class="flex-1 flex flex-col min-w-0">
+    {% with thread=active_thread, messages=active_thread.messages %}
+      {% include "partials/chat_area.html" %}
+    {% endwith %}
+  </div>
+
+</div>
+{% endblock %}
