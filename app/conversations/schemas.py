@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -9,12 +8,12 @@ class MessageCreate(BaseModel):
 
 
 class ThreadsDelete(BaseModel):
-    thread_ids: list[uuid.UUID]
+    thread_ids: list[str]
 
 
 class MessageOut(BaseModel):
-    id: uuid.UUID
-    thread_id: uuid.UUID
+    id: str
+    thread_id: str
     role: str
     content: str
     created_at: datetime
@@ -23,7 +22,7 @@ class MessageOut(BaseModel):
 
 
 class ThreadOut(BaseModel):
-    id: uuid.UUID
+    id: str
     title: str
     created_at: datetime
 
@@ -31,7 +30,7 @@ class ThreadOut(BaseModel):
 
 
 class ThreadWithMessages(BaseModel):
-    id: uuid.UUID
+    id: str
     title: str
     created_at: datetime
     messages: list[MessageOut]

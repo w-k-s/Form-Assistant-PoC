@@ -1,7 +1,5 @@
-from fastapi import Cookie, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Cookie
 
-from app.db.session import get_db
 from app.services.auth import decode_access_token
 
 

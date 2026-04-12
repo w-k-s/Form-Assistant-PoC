@@ -1,3 +1,3 @@
-from app.users.models import User
+from app.users.models import User, UserId
 
-__all__ = ["User"]
+__all__ = ["User", "UserId"]

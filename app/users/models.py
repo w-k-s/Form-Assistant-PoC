@@ -1,35 +1,24 @@
-from datetime import datetime, timezone
 from typing import NewType
 
-from sqlalchemy import DateTime, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+import sqlalchemy as sa
 
-from app.db.session import Base
+from app.db.metadata import metadata
 from app.sequencer import generate
 
 UserId = NewType("UserId", str)
 
 
-def generate_user_id(suffix: str | None = None) -> UserId:
-    return UserId("u_" + (suffix if suffix is not None else generate()))
+def generate_user_id() -> UserId:
+    return UserId("u_" + generate())
 
 
-def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-class User(Base):
-    __tablename__ = "users"
-
-    id: Mapped[UserId] = mapped_column(
-        String(32), primary_key=True, default=generate_user_id
-    )
-    google_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
-    email: Mapped[str] = mapped_column(String(256), nullable=False)
-    name: Mapped[str] = mapped_column(String(256), nullable=False)
-    picture: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow
-    )
-
-    threads: Mapped[list["Thread"]] = relationship(back_populates="user")
+User = sa.Table(
+    "users",
+    metadata,
+    sa.Column("id", sa.String(32), primary_key=True),
+    sa.Column("google_id", sa.String(128), unique=True, nullable=False),
+    sa.Column("email", sa.String(256), nullable=False),
+    sa.Column("name", sa.String(256), nullable=False),
+    sa.Column("picture", sa.Text, nullable=True),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+)

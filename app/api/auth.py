@@ -1,17 +1,14 @@
-import uuid
-
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.config import Config
 
 from app.config import settings
-from app.db.session import get_db
+from app.db.session import get_conn
 from app.dependencies import get_current_user
-from app.users import User
 from app.services.auth import create_access_token
+from app.users.dao import create_user, get_user_by_google_id, update_user
 
 router = APIRouter(prefix="/auth")
 
@@ -35,7 +32,7 @@ async def google_login(request: Request):
 
 
 @router.get("/google/callback", name="google_callback")
-async def google_callback(request: Request, db: AsyncSession = Depends(get_db)):
+async def google_callback(request: Request, conn: AsyncConnection = Depends(get_conn)):
     token = await oauth.google.authorize_access_token(request)
     userinfo = token.get("userinfo") or await oauth.google.userinfo(token=token)
 
@@ -44,20 +41,16 @@ async def google_callback(request: Request, db: AsyncSession = Depends(get_db)):
     name = userinfo.get("name", email)
     picture = userinfo.get("picture")
 
-    result = await db.execute(select(User).where(User.google_id == google_id))
-    user = result.scalar_one_or_none()
-
-    if user is None:
-        user = User(google_id=google_id, email=email, name=name, picture=picture)
-        db.add(user)
+    existing = await get_user_by_google_id(conn, google_id)
+    if existing is None:
+        user = await create_user(conn, google_id, email, name, picture)
     else:
-        user.name = name
-        user.picture = picture
+        await update_user(conn, google_id, name, picture)
+        user = {**existing, "name": name, "picture": picture}
 
-    await db.commit()
-    await db.refresh(user)
+    await conn.commit()
 
-    jwt_token = create_access_token({"sub": str(user.id), "name": user.name, "email": user.email})
+    jwt_token = create_access_token({"sub": user["id"], "name": user["name"], "email": user["email"]})
 
     response = RedirectResponse(url="/?after_login=1")
     response.set_cookie(

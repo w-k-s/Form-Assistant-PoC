@@ -11,15 +11,10 @@ from app.agent.graph import build_graph
 from app.api import auth, chat, deadlines, pages
 from app.config import settings
 from app.db.session import engine
-from app.models.conversation import Base  # noqa: F401 — register models
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create DB tables (no-op if already exist; use alembic for migrations in prod)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     # Build LangGraph graph with async PostgreSQL checkpointer
     # Use a sync-compatible connection string (psycopg3)
     pg_conn_str = settings.database_url.replace(

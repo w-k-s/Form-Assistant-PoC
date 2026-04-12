@@ -8,8 +8,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from app.config import settings
-from app.db.session import Base
-import app.models.conversation  # noqa: F401 — ensure models are registered
+from app.db.metadata import metadata
+import app.users.models  # noqa: F401 — register users table
+import app.conversations.models  # noqa: F401 — register threads + messages tables
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
@@ -17,7 +18,7 @@ config.set_main_option("sqlalchemy.url", settings.database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = metadata
 
 
 def run_migrations_offline() -> None:
@@ -33,7 +34,10 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+    )
     with context.begin_transaction():
         context.run_migrations()
 

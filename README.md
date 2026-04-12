@@ -28,6 +28,29 @@ AWS_REGION=ap-south-1
 uv run alembic upgrade head
 ```
 
+## Migrations
+
+All tables live in the `app` PostgreSQL schema. The `alembic_version` tracking table is also kept in that schema.
+
+**Run pending migrations** (do this on every deploy):
+```bash
+uv run alembic upgrade head
+```
+
+**Create a new migration** after changing a table definition in `app/users/models.py` or `app/conversations/models.py`:
+```bash
+uv run alembic revision --autogenerate -m "describe_what_changed"
+```
+
+Review the generated file in `alembic/versions/` before committing — autogenerate can miss some changes (e.g. check constraints, custom indexes) and should not be committed blindly.
+
+**Other useful commands:**
+```bash
+uv run alembic current          # show which revision the DB is on
+uv run alembic history          # list all revisions
+uv run alembic downgrade -1     # roll back one revision
+```
+
 **3a. Development (hot reload):**
 ```bash
 # Terminal 1 — backend
