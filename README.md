@@ -3,7 +3,7 @@
 PoC of a chat application where the agent assists the user in completing the form.
 
 Use Cases:
-- Agent assists user in completing a claims form.
+- Agent assists user in completing a insurance policy form.
 - Agent assists user in applying for an official document.
 
 ## Setup
@@ -21,6 +21,9 @@ JWT_SECRET=some-long-random-string
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=ap-south-1
+BEDROCK_MODEL_ID=mistral.ministral-3-3b-instruct
+BEDROCK_MAX_TOKENS=256
+BEDROCK_TEMPERATURE=0.7
 ```
 
 **2. Run database migrations:**
@@ -29,8 +32,6 @@ uv run alembic upgrade head
 ```
 
 ## Migrations
-
-All tables live in the `app` PostgreSQL schema. The `alembic_version` tracking table is also kept in that schema.
 
 **Run pending migrations** (do this on every deploy):
 ```bash
@@ -69,12 +70,9 @@ uv run uvicorn app.main:app --port 8000
 ## Next Steps
 
 - [x] Sign-up or sign-in the user.
-- [ ] Manager agent routes to appropriate sub-agent, depending on if the user wants to ask for general information or wants to complete the form. 
-    
-    For now:
-    - [x] If the user asks a question, Q&A agent replies with "I don't know."
-    - If the user aks for information, RAG agent replied with "I can't find this information".
-- [ ] QA Agent will ask first question from SurveyJS survey
+- [x] Implement handoff based on Langchain tutorials
+- [ ] Customize response schema and UI to show multiple choice options.
+- [ ] Generate a PDF for the insurance
 
 ## Useful Resources
 

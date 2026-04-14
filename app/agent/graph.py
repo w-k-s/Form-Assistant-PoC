@@ -34,6 +34,8 @@ llm = ChatBedrockConverse(
     region_name=settings.aws_region,
     aws_access_key_id=settings.aws_access_key_id or None,
     aws_secret_access_key=settings.aws_secret_access_key or None,
+    max_tokens=settings.bedrock_max_tokens,
+    temperature=settings.bedrock_temperature,
 )
 
 

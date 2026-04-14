@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = ""
     aws_region: str = "ap-south-1"
     bedrock_model_id: str = "mistral.ministral-3-3b-instruct"
+    bedrock_max_tokens: int = 256
+    bedrock_temperature: float = 0.7
 
 
 settings = Settings()
