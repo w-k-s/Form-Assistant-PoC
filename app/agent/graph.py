@@ -63,15 +63,13 @@ STEP_CONFIG = {
     },
     "number_of_accidents_collector": {
         "prompt": NUMBER_OF_ACCIDENTS_COLLECTOR_PROMPT,
-        "tools": [record_number_of_accidents, calculate_premium],
+        "tools": [record_number_of_accidents],
         "requires": ["emirate", "car_make", "car_model", "car_year"],
     },
     "print_premium": {
         "prompt": PRINT_PREMIUM_PROMPT,
-        "tools": [print_premium],
-        "requires": [
-            "premium",
-        ],
+        "tools": [calculate_premium, print_premium],
+        "requires": [],
     },
 }
 

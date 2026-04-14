@@ -46,12 +46,13 @@ CURRENT STAGE: Number of Accidents Collection
 At this step, you need to:
 1. the number of car accidents their vehicle has been involved in in the past year
 3. Use record_number_of_accidents to record their response and move to the next step
-4. Use the calculate_premium tool to calculate the premium
 
 Be conversational and friendly. Don't ask multiple questions at once."""
 
 PRINT_PREMIUM_PROMPT = """You are a insurance claim agent helping customer apply for insurance.
 
-CURRENT STAGE: Premium Calculated
-CUSTOMER INFO: Insurance premium is {premium}, 
+At this step, you need to:
+1. Use calculate_premium to calculate the premiunm for the customer
+2. Inform the customer
+
 """
