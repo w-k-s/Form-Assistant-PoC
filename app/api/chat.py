@@ -1,3 +1,4 @@
+import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
@@ -22,6 +23,8 @@ from app.services.chat import (
     get_thread,
     list_threads,
 )
+
+log = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -147,6 +150,26 @@ async def stream_thread(
                     if token:
                         full_reply.append(token)
                         yield {"event": "token", "data": token}
+
+                elif kind == "on_chat_model_end" and not full_reply:
+                    # Bedrock doesn't emit streaming events — fall back to full output
+                    output = event["data"].get("output")
+                    if output and hasattr(output, "content"):
+                        c = output.content
+                        if isinstance(c, str):
+                            token = c
+                        elif isinstance(c, list):
+                            token = "".join(
+                                p.get("text", "") if isinstance(p, dict) else str(p)
+                                for p in c
+                            )
+                        else:
+                            token = ""
+                        if token:
+                            full_reply.append(token)
+                            yield {"event": "token", "data": token}
+        except Exception as e:
+            log.error("Agent Exception", exc_info=e)
         finally:
             complete = "".join(full_reply)
             if complete:
