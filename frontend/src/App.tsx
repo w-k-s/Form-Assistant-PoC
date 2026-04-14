@@ -9,6 +9,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/threads/:threadId" element={<ChatPage />} />
           <Route path="/*" element={<ChatPage />} />
         </Routes>
       </BrowserRouter>

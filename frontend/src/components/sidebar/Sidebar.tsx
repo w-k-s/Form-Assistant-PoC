@@ -1,14 +1,15 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listThreads, createThread, deleteThreads, deleteAllThreads, type Thread } from '../../api/threads'
 import ThreadItem from './ThreadItem'
 
 interface Props {
   activeThreadId: string | null
-  onSelectThread: (id: string) => void
 }
 
-export default function Sidebar({ activeThreadId, onSelectThread }: Props) {
+export default function Sidebar({ activeThreadId }: Props) {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isManaging, setIsManaging] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -22,7 +23,7 @@ export default function Sidebar({ activeThreadId, onSelectThread }: Props) {
     mutationFn: createThread,
     onSuccess: (thread: Thread) => {
       queryClient.invalidateQueries({ queryKey: ['threads'] })
-      onSelectThread(thread.id)
+      navigate(`/threads/${thread.id}`)
     },
   })
 
@@ -30,6 +31,7 @@ export default function Sidebar({ activeThreadId, onSelectThread }: Props) {
     mutationFn: () => deleteThreads(Array.from(selectedIds)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['threads'] })
+      if (activeThreadId && selectedIds.has(activeThreadId)) navigate('/')
       setSelectedIds(new Set())
       setIsManaging(false)
     },
@@ -39,6 +41,7 @@ export default function Sidebar({ activeThreadId, onSelectThread }: Props) {
     mutationFn: deleteAllThreads,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['threads'] })
+      navigate('/')
       setSelectedIds(new Set())
       setIsManaging(false)
     },
@@ -100,7 +103,7 @@ export default function Sidebar({ activeThreadId, onSelectThread }: Props) {
             key={thread.id}
             thread={thread}
             isActive={thread.id === activeThreadId}
-            onClick={() => onSelectThread(thread.id)}
+            onClick={() => navigate(`/threads/${thread.id}`)}
             isManaging={isManaging}
             isSelected={selectedIds.has(thread.id)}
             onToggle={toggleSelect}
