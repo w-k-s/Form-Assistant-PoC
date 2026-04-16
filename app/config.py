@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     bedrock_model_id: str = "mistral.ministral-3-3b-instruct"
     bedrock_max_tokens: int = 256
     bedrock_temperature: float = 0.7
+    qdrant_url: str
 
 
 settings = Settings()

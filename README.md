@@ -24,9 +24,17 @@ AWS_REGION=ap-south-1
 BEDROCK_MODEL_ID=mistral.ministral-3-3b-instruct
 BEDROCK_MAX_TOKENS=256
 BEDROCK_TEMPERATURE=0.7
+QDRANT_URL=http://localhost:6333
 ```
 
-**2. Run database migrations:**
+**2. Start Docker services (Qdrant):**
+```bash
+docker compose up -d
+```
+
+Qdrant dashboard: http://localhost:6333/dashboard
+
+**3. Run database migrations:**
 ```bash
 uv run alembic upgrade head
 ```
@@ -52,7 +60,7 @@ uv run alembic history          # list all revisions
 uv run alembic downgrade -1     # roll back one revision
 ```
 
-**3a. Development (hot reload):**
+**4a. Development (hot reload):**
 ```bash
 # Terminal 1 — backend
 uv run uvicorn app.main:app --reload --port 8000
@@ -61,7 +69,7 @@ uv run uvicorn app.main:app --reload --port 8000
 cd frontend && npm install && npm run dev
 ```
 
-**3b. Production (React served from FastAPI):**
+**4b. Production (React served from FastAPI):**
 ```bash
 cd frontend && npm run build
 uv run uvicorn app.main:app --port 8000
