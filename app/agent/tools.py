@@ -1,7 +1,7 @@
 import csv
 import difflib
-import os
 import structlog
+from importlib.resources import files
 from app.services.premium import calculate_premium as _calculate_premium
 from typing import Literal, List
 from langchain.tools import tool, ToolRuntime
@@ -15,8 +15,7 @@ log = structlog.get_logger(__name__)
 # Structure: { (make_lower, model_lower): (start_year, end_year) }
 _CAR_MODELS: dict[tuple[str, str], tuple[int, int]] = {}
 
-_CSV_PATH = os.path.join(os.path.dirname(__file__), "car_models.csv")
-with open(_CSV_PATH, newline="", encoding="utf-8") as _f:
+with (files("app.resources") / "car_models.csv").open(newline="", encoding="utf-8") as _f:
     for row in csv.DictReader(_f):
         key = (row["make"].strip().lower(), row["model"].strip().lower())
         _CAR_MODELS[key] = (int(row["start_year"]), int(row["end_year"]))
