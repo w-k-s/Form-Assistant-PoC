@@ -8,9 +8,11 @@ from langgraph.graph.message import add_messages
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
 from app.agent.models import InsuranceFormState
 from app.agent.tools import (
+    validate_emirate,
     record_emirate,
     record_car_make,
     record_car_model,
+    validate_year_of_manufacture,
     record_car_year,
     record_number_of_accidents,
     calculate_premium,
@@ -43,7 +45,7 @@ llm = ChatBedrockConverse(
 STEP_CONFIG = {
     "emirate_collector": {
         "prompt": EMIRATE_COLLECTOR_PROMPT,
-        "tools": [record_emirate],
+        "tools": [record_emirate, validate_emirate],
         "requires": [],
     },
     "car_make_collector": {
@@ -58,7 +60,7 @@ STEP_CONFIG = {
     },
     "car_year_collector": {
         "prompt": CAR_YEAR_COLLECTOR_PROMPT,
-        "tools": [record_car_year],
+        "tools": [record_car_year, validate_year_of_manufacture],
         "requires": [],
     },
     "number_of_accidents_collector": {
@@ -109,9 +111,11 @@ async def apply_step_config(
 
 
 all_tools = [
+    validate_emirate,
     record_emirate,
     record_car_make,
     record_car_model,
+    validate_year_of_manufacture,
     record_car_year,
     record_number_of_accidents,
     calculate_premium,

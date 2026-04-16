@@ -71,8 +71,15 @@ uv run uvicorn app.main:app --port 8000
 
 - [x] Sign-up or sign-in the user.
 - [x] Implement handoff based on Langchain tutorials
-- [ ] Customize response schema and UI to show multiple choice options.
-- [ ] Generate a PDF for the insurance
+- [x] Validate user input.
+- [ ] Transfer to help agent (answers from document with citation)
+- [ ] Transfer back to form agent (and continue from where user left off)
+- [ ] Generate a PDF for the insurance policy.
+- [ ] Payment Integration
+
+**Bonus Features**
+- [ ] Add guardrails (try out bedrock APIs for this)
+- [ ] Render choices in the UI, the way claude code does.
 
 ## Useful Resources
 
