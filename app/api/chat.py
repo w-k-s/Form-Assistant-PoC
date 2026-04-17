@@ -1,7 +1,6 @@
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from langchain_core.messages import HumanMessage
-from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sse_starlette.sse import EventSourceResponse
 
@@ -27,17 +26,6 @@ from app.services.chat import (
 log = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/api")
-
-
-# Injected by main.py lifespan
-_graph = None
-_checkpointer: AsyncPostgresSaver | None = None
-
-
-def set_graph(graph, checkpointer):
-    global _graph, _checkpointer
-    _graph = graph
-    _checkpointer = checkpointer
 
 
 @router.post("/threads", response_model=ThreadOut, status_code=201)
@@ -104,10 +92,12 @@ async def post_message(
 @router.get("/threads/{thread_id}/stream")
 async def stream_thread(
     thread_id: str,
+    request: Request,
     conn: AsyncConnection = Depends(get_conn),
     current_user: dict | None = Depends(get_current_user),
 ):
-    if _graph is None:
+    graph = request.app.state.graph
+    if graph is None:
         raise HTTPException(status_code=503, detail="Agent not initialized")
 
     thread = await get_thread(conn, thread_id)
@@ -129,7 +119,7 @@ async def stream_thread(
         }
         full_reply: list[str] = []
         try:
-            async for event in _graph.astream_events(
+            async for event in graph.astream_events(
                 {"messages": [HumanMessage(content=latest_user_msg["content"])]},
                 config=lg_config,
                 version="v2",

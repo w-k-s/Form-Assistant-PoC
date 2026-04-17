@@ -11,6 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.agent.graph import build_graph
 from app.api import auth, chat, deadlines, pages, rag
 from app.config import settings
+from app.db.qdrant import create_qdrant_client, ensure_collection
 from app.db.session import engine
 from app.logging import setup_logging
 
@@ -26,14 +27,20 @@ async def lifespan(app: FastAPI):
     pg_conn_str = settings.database_url.replace(
         "postgresql+asyncpg://", "postgresql://"
     )
+    qdrant_client = await create_qdrant_client()
+    await ensure_collection(qdrant_client)
+    app.state.qdrant_client = qdrant_client
+
     async with AsyncPostgresSaver.from_conn_string(pg_conn_str) as checkpointer:
         await checkpointer.setup()
         graph = build_graph(checkpointer=checkpointer)
-        chat.set_graph(graph, checkpointer)
+        app.state.graph = graph
+        app.state.checkpointer = checkpointer
         logger.info("app started")
 
         yield
 
+    await qdrant_client.close()
     await engine.dispose()
 
 

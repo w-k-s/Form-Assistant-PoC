@@ -25,6 +25,13 @@ BEDROCK_MODEL_ID=mistral.ministral-3-3b-instruct
 BEDROCK_MAX_TOKENS=256
 BEDROCK_TEMPERATURE=0.7
 QDRANT_URL=http://localhost:6333
+QDRANT_COLLECTION=ai_form_hybrid
+QDRANT_EMBEDDING_MODEL=amazon.titan-embed-text-v2:0
+QDRANT_EMBEDDING_DIM=1024
+QDRANT_SPARSE_EMBEDDING_MODEL=Qdrant/bm25
+S3_KNOWLEDGE_BASE_BUCKET=com.wks.aiform.knowledge-base
+RAG_CHUNK_SIZE=1000
+RAG_CHUNK_OVERLAP=200
 ```
 
 **2. Start Docker services (Qdrant):**
@@ -93,3 +100,4 @@ uv run uvicorn app.main:app --port 8000
 
 - [Subagent Architecture Tutorial]()
 - [Handoff Architecture Tutorial](https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs-customer-support) 
+- [Working with Qdrant](https://docs.langchain.com/oss/python/integrations/vectorstores/qdrant#add-items-to-vector-store)
