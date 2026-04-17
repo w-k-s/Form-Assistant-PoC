@@ -12,10 +12,12 @@ from app.users.dao import create_user, get_user_by_google_id, update_user
 
 router = APIRouter(prefix="/auth")
 
-_config = Config(environ={
-    "GOOGLE_CLIENT_ID": settings.google_client_id,
-    "GOOGLE_CLIENT_SECRET": settings.google_client_secret,
-})
+_config = Config(
+    environ={
+        "GOOGLE_CLIENT_ID": settings.google_client_id,
+        "GOOGLE_CLIENT_SECRET": settings.google_client_secret,
+    }
+)
 
 oauth = OAuth(_config)
 oauth.register(
@@ -50,7 +52,9 @@ async def google_callback(request: Request, conn: AsyncConnection = Depends(get_
 
     await conn.commit()
 
-    jwt_token = create_access_token({"sub": user["id"], "name": user["name"], "email": user["email"]})
+    jwt_token = create_access_token(
+        {"sub": user["id"], "name": user["name"], "email": user["email"]}
+    )
 
     response = RedirectResponse(url="/?after_login=1")
     response.set_cookie(
@@ -74,4 +78,8 @@ async def logout():
 async def me(current_user: dict | None = Depends(get_current_user)):
     if not current_user:
         return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
-    return {"id": current_user["sub"], "name": current_user["name"], "email": current_user["email"]}
+    return {
+        "id": current_user["sub"],
+        "name": current_user["name"],
+        "email": current_user["email"],
+    }

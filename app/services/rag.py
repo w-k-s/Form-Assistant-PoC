@@ -17,7 +17,6 @@ async def index_documents(store: QdrantVectorStore, s3_keys: list[str] = []):
 
     # would be interesting to setup worker jobs to parallelize this
     for s3_key in s3_keys:
-
         try:
             docs = load_documents_from_s3(s3_key=s3_key)
             log.info("Document loaded", s3_key=s3_key)

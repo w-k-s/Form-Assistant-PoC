@@ -72,9 +72,7 @@ async def delete_thread(
     conn: AsyncConnection,
     thread_id: ThreadId,
 ) -> bool:
-    result = await conn.execute(
-        delete(threads).where(threads.c.id == thread_id)
-    )
+    result = await conn.execute(delete(threads).where(threads.c.id == thread_id))
     await conn.commit()
     return result.rowcount > 0
 
@@ -85,9 +83,7 @@ async def delete_threads(
 ) -> int:
     if not thread_ids:
         return 0
-    result = await conn.execute(
-        delete(threads).where(threads.c.id.in_(thread_ids))
-    )
+    result = await conn.execute(delete(threads).where(threads.c.id.in_(thread_ids)))
     await conn.commit()
     return result.rowcount
 

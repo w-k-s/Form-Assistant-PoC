@@ -17,7 +17,6 @@ from app.services.chat import (
     add_message,
     create_thread,
     delete_all_threads,
-    delete_thread,
     delete_threads,
     get_thread,
     list_threads,

@@ -3,7 +3,7 @@ import difflib
 import structlog
 from importlib.resources import files
 from app.services.premium import calculate_premium as _calculate_premium
-from typing import Literal, List
+from typing import List
 from langchain.tools import tool, ToolRuntime
 from langchain.messages import ToolMessage
 from app.agent.models import InsuranceFormState
@@ -15,7 +15,9 @@ log = structlog.get_logger(__name__)
 # Structure: { (make_lower, model_lower): (start_year, end_year) }
 _CAR_MODELS: dict[tuple[str, str], tuple[int, int]] = {}
 
-with (files("app.resources") / "car_models.csv").open(newline="", encoding="utf-8") as _f:
+with (files("app.resources") / "car_models.csv").open(
+    newline="", encoding="utf-8"
+) as _f:
     for row in csv.DictReader(_f):
         key = (row["make"].strip().lower(), row["model"].strip().lower())
         _CAR_MODELS[key] = (int(row["start_year"]), int(row["end_year"]))
@@ -154,7 +156,7 @@ def validate_year_of_manufacture(
             ]
     # If still not found, let it slide — unrecognised make/model is not an error.
     log.info(
-        f"validate_year_of_manufacture",
+        "validate_year_of_manufacture",
         car_make=car_make,
         car_model=car_model,
         car_year=car_year,
@@ -226,7 +228,7 @@ def calculate_premium(
         emirate, car_make, car_model, car_year, number_of_accidents
     )
     log.info(
-        f"calculate_premium",
+        "calculate_premium",
         car_make=car_make,
         car_model=car_model,
         car_year=car_year,

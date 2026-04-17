@@ -1,7 +1,7 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_FILE = ".env" if os.getenv("ENV") is None else f'.env.{os.getenv("ENV").lower()}'
+ENV_FILE = ".env" if os.getenv("ENV") is None else f".env.{os.getenv('ENV').lower()}"
 
 
 class Settings(BaseSettings):

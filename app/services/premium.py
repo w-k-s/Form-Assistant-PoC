@@ -37,28 +37,29 @@ _MAKE_MULTIPLIER: dict[str, float] = {
 }
 _MAKE_MULTIPLIER_DEFAULT = 1.0
 
+
 # Vehicle age factor — newer cars cost more to insure (higher value / repair cost),
 # older cars attract a flat uplift for parts availability.
 def _age_factor(car_year: int, current_year: int = 2026) -> float:
     age = current_year - car_year
     if age <= 1:
-        return 1.30   # brand new
+        return 1.30  # brand new
     elif age <= 3:
         return 1.20
     elif age <= 5:
         return 1.10
     elif age <= 10:
-        return 1.00   # sweet spot
+        return 1.00  # sweet spot
     elif age <= 15:
-        return 1.05   # parts getting scarcer
+        return 1.05  # parts getting scarcer
     else:
-        return 1.15   # classic / hard-to-source parts
+        return 1.15  # classic / hard-to-source parts
 
 
 # Accident loading — each at-fault claim raises risk profile.
 def _accident_loading(number_of_accidents: int) -> float:
     if number_of_accidents == 0:
-        return 0.90   # no-claims discount
+        return 0.90  # no-claims discount
     elif number_of_accidents == 1:
         return 1.15
     elif number_of_accidents == 2:
@@ -66,7 +67,7 @@ def _accident_loading(number_of_accidents: int) -> float:
     elif number_of_accidents == 3:
         return 1.75
     else:
-        return 2.20   # high risk
+        return 2.20  # high risk
 
 
 def calculate_premium(

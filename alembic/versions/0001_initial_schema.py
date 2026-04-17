@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-04-12
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -31,7 +32,12 @@ def upgrade() -> None:
     op.create_table(
         "threads",
         sa.Column("id", sa.String(32), primary_key=True),
-        sa.Column("user_id", sa.String(32), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "user_id",
+            sa.String(32),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("title", sa.String(256), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
@@ -39,7 +45,12 @@ def upgrade() -> None:
     op.create_table(
         "messages",
         sa.Column("id", sa.String(32), primary_key=True),
-        sa.Column("thread_id", sa.String(32), sa.ForeignKey("threads.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "thread_id",
+            sa.String(32),
+            sa.ForeignKey("threads.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("role", sa.String(32), nullable=False),
         sa.Column("content", sa.Text, nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
