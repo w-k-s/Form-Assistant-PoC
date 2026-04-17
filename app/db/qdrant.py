@@ -1,22 +1,21 @@
 from fastapi import Request
 from langchain_aws import BedrockEmbeddings
 from langchain_qdrant import QdrantVectorStore, RetrievalMode, FastEmbedSparse
-from qdrant_client import AsyncQdrantClient, models
+from qdrant_client import QdrantClient, models
 
 from app.config import settings
 
 
-
-async def create_qdrant_client() -> AsyncQdrantClient:
+def create_qdrant_client() -> QdrantClient:
     kwargs: dict = {"url": settings.qdrant_url}
     if settings.qdrant_api_key:
         kwargs["api_key"] = settings.qdrant_api_key
-    return AsyncQdrantClient(**kwargs)
+    return QdrantClient(**kwargs)
 
 
-async def ensure_collection(client: AsyncQdrantClient) -> None:
-    if not await client.collection_exists(settings.qdrant_collection):
-        await client.create_collection(
+def ensure_collection(client: QdrantClient) -> None:
+    if not client.collection_exists(settings.qdrant_collection):
+        client.create_collection(
             collection_name=settings.qdrant_collection,
             vectors_config={
                 "dense": models.VectorParams(
@@ -32,14 +31,16 @@ async def ensure_collection(client: AsyncQdrantClient) -> None:
         )
 
 
-async def get_vector_store(request: Request) -> QdrantVectorStore:
+def build_vector_store(client: QdrantClient) -> QdrantVectorStore:
     embeddings = BedrockEmbeddings(
         model_id=settings.qdrant_embedding_model,
         region_name=settings.aws_region,
     )
-    sparse_embeddings = FastEmbedSparse(model_name=settings.qdrant_sparse_embedding_model)
+    sparse_embeddings = FastEmbedSparse(
+        model_name=settings.qdrant_sparse_embedding_model
+    )
     return QdrantVectorStore(
-        client=request.app.state.qdrant_client,
+        client=client,
         collection_name=settings.qdrant_collection,
         embedding=embeddings,
         sparse_embedding=sparse_embeddings,
@@ -47,3 +48,7 @@ async def get_vector_store(request: Request) -> QdrantVectorStore:
         vector_name="dense",
         sparse_vector_name="sparse",
     )
+
+
+def get_vector_store(request: Request) -> QdrantVectorStore:
+    return request.app.state.vector_store

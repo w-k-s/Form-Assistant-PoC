@@ -1,10 +1,9 @@
-from typing import Annotated, Literal, NotRequired, Callable
+from typing import Callable
 import structlog
-from langchain.agents import AgentState, create_agent
-from langchain.tools import tool, ToolRuntime
+from langchain.agents import create_agent
+from langchain.tools import tool
 from langchain_aws import ChatBedrockConverse
-from langchain_core.messages import HumanMessage
-from langgraph.graph.message import add_messages
+from langchain_qdrant import QdrantVectorStore
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
 from app.agent.models import InsuranceFormState
 from app.agent.tools import (
@@ -40,6 +39,17 @@ llm = ChatBedrockConverse(
     temperature=settings.bedrock_temperature,
 )
 
+all_tools = [
+    validate_emirate,
+    record_emirate,
+    record_car_make,
+    record_car_model,
+    validate_year_of_manufacture,
+    record_car_year,
+    record_number_of_accidents,
+    calculate_premium,
+    print_premium,
+]
 
 # Step configuration: maps step name to (prompt, tools, required_state)
 STEP_CONFIG = {
@@ -60,7 +70,10 @@ STEP_CONFIG = {
     },
     "car_year_collector": {
         "prompt": CAR_YEAR_COLLECTOR_PROMPT,
-        "tools": [record_car_year, validate_year_of_manufacture],
+        "tools": [
+            record_car_year,
+            validate_year_of_manufacture,
+        ],
         "requires": [],
     },
     "number_of_accidents_collector": {
@@ -76,58 +89,61 @@ STEP_CONFIG = {
 }
 
 
-@wrap_model_call
-async def apply_step_config(
-    request: ModelRequest,
-    handler: Callable[[ModelRequest], ModelResponse],
-) -> ModelResponse:
-    """Configure agent behavior based on the current step."""
+def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
+    @tool
+    def search_knowledge_base(query: str) -> str:
+        """Search the knowledge base for insurance policy information."""
+        log.info("search_knowledge_base invoked", query=query)
+        results = vector_store.similarity_search_with_score(query)
+        log.info(
+            "search_knowledge_base results",
+            count=len(results),
+            chunks=[
+                {"content": doc.page_content, "metadata": doc.metadata, "score": score}
+                for doc, score in results
+            ],
+        )
+        return "\n\n".join(
+            f"{doc.page_content}\n[Source: {doc.metadata.get('source', 'unknown')}]"
+            for doc, _ in results
+        )
 
-    log.info("Current State", **request.state)
+    @wrap_model_call
+    async def apply_step_config(
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ) -> ModelResponse:
+        """Configure agent behavior based on the current step."""
 
-    # Get current step (defaults to emirate_collector for first interaction)
-    current_step = request.state.get("current_step", "emirate_collector")
+        # log.info("Current State", **request.state)
 
-    # Look up step configuration
-    stage_config = STEP_CONFIG[current_step]
+        # Get current step (defaults to emirate_collector for first interaction)
+        current_step = request.state.get("current_step", "emirate_collector")
 
-    # Validate required state exists
-    for key in stage_config["requires"]:
-        if request.state.get(key) is None:
-            raise ValueError(f"{key} must be set before reaching {current_step}")
+        # Look up step configuration
+        stage_config = STEP_CONFIG[current_step]
 
-    # Format prompt with state values (supports {warranty_status}, {issue_type}, etc.)
-    system_prompt = stage_config["prompt"].format(**request.state)
+        # Validate required state exists
+        for key in stage_config["requires"]:
+            if request.state.get(key) is None:
+                raise ValueError(f"{key} must be set before reaching {current_step}")
 
-    # Inject system prompt and step-specific tools
-    request = request.override(
-        system_prompt=system_prompt,
-        tools=stage_config["tools"],
-    )
+        # Format prompt with state values (supports {warranty_status}, {issue_type}, etc.)
+        system_prompt = stage_config["prompt"].format(**request.state)
 
-    response = await handler(request)
+        tools = [*stage_config["tools"], search_knowledge_base]
 
-    return response
+        request = request.override(
+            system_prompt=system_prompt,
+            tools=tools,
+        )
 
+        return await handler(request)
 
-all_tools = [
-    validate_emirate,
-    record_emirate,
-    record_car_make,
-    record_car_model,
-    validate_year_of_manufacture,
-    record_car_year,
-    record_number_of_accidents,
-    calculate_premium,
-    print_premium,
-]
-
-
-def build_graph(checkpointer=None):
     log.info("Built the graph")
     return create_agent(
         model=llm,
-        tools=all_tools,
+        tools=[*all_tools, search_knowledge_base],
         state_schema=InsuranceFormState,
         middleware=[apply_step_config],
         checkpointer=checkpointer,

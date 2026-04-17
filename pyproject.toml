@@ -31,4 +31,10 @@ dependencies = [
     "langchain-community>=0.4.1",
     "uuid7>=0.1.0",
     "fastembed==0.8.0",
+    "unstructured[pdf]>=0.22.21",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
 ]

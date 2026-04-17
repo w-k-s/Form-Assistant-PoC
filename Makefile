@@ -1,4 +1,13 @@
-.PHONY: deploy migrate
+.PHONY: deploy migrate lint fmt
+
+fmt:
+	uv run ruff format .
+
+lint:
+	uv run ruff check .
+
+lint-fix:
+	uv run ruff check --fix .
 
 migrate_local:
 	ENV=local uv run alembic upgrade head

@@ -87,14 +87,41 @@ uv run uvicorn app.main:app --port 8000
 - [x] Sign-up or sign-in the user.
 - [x] Implement handoff based on Langchain tutorials
 - [x] Validate user input.
-- [ ] Transfer to help agent (answers from document with citation)
-- [ ] Transfer back to form agent (and continue from where user left off)
+- [-] Answer user questions using RAG, with linked citations.
 - [ ] Generate a PDF for the insurance policy.
 - [ ] Payment Integration
 
 **Bonus Features**
 - [ ] Add guardrails (try out bedrock APIs for this)
 - [ ] Render choices in the UI, the way claude code does.
+
+_Definitely need the hallucination guardrail! Mistral can't keep it's mouth shut with its own insurance recommendations!_
+
+## AWS IAM Policy
+
+The following IAM policy (`FormAssistant.BedrockClient`) is required to allow the application to invoke the Bedrock models used for inference and embeddings:
+
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "Statement1",
+			"Effect": "Allow",
+			"Action": [
+				"bedrock:InvokeModel",
+				"bedrock:InvokeModelWithResponseStream"
+			],
+			"Resource": [
+				"arn:aws:bedrock:ap-south-1::foundation-model/mistral.ministral-3-3b-instruct",
+				"arn:aws:bedrock:ap-south-1::foundation-model/amazon.titan-embed-text-v2:0"
+			]
+		}
+	]
+}
+```
+
+Attach this policy to the IAM user or role whose credentials are set in `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`.
 
 ## Useful Resources
 

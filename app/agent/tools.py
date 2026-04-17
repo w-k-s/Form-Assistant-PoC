@@ -40,12 +40,12 @@ def validate_emirate(
     """Validates emirate.Returns a list of validation errors. An empty"""
     # Should do fuzzy matching
     result = []
-    if not emirate.lower() in VALID_EMIRATES_LOWER:
+    if emirate.lower() not in VALID_EMIRATES_LOWER:
         result = [
             f"{emirate} is not a recognised emirate. Please enter one of {VALID_EMIRATES}"
         ]
 
-    log.info(f"validate_emirate", emirate=emirate, result=result)
+    log.info("validate_emirate", emirate=emirate, result=result)
     return Command(
         update={
             "messages": [

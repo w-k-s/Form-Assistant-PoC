@@ -23,4 +23,5 @@ async def trigger_indexing(store: QdrantVectorStore = Depends(get_vector_store))
 
     s3_key = "anyinsurance_guide.pdf"
 
+    # just queue the job, don't wait for it
     return await index_documents(store, s3_keys=[s3_key])
