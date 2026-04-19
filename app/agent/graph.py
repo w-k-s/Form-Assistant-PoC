@@ -1,11 +1,12 @@
 from typing import Callable
+import json
 import structlog
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_aws import ChatBedrockConverse
 from langchain_qdrant import QdrantVectorStore
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
-from app.agent.models import InsuranceFormState
+from app.agent.models import InsuranceFormState, KnowledgeBaseAnswer
 from app.agent.tools import (
     validate_emirate,
     record_emirate,
@@ -24,6 +25,7 @@ from app.agent.prompts import (
     CAR_YEAR_COLLECTOR_PROMPT,
     NUMBER_OF_ACCIDENTS_COLLECTOR_PROMPT,
     PRINT_PREMIUM_PROMPT,
+    ENQUIRY_AGENT_PROMPT,
 )
 
 from app.config import settings
@@ -92,20 +94,49 @@ STEP_CONFIG = {
 def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
     @tool
     def search_knowledge_base(query: str) -> str:
-        """Search the knowledge base for insurance policy information."""
+        """Search the knowledge base for insurance policy information. Returns a JSON list of results with content, source, page, and relevance score."""
         log.info("search_knowledge_base invoked", query=query)
-        results = vector_store.similarity_search_with_score(query)
-        log.info(
-            "search_knowledge_base results",
-            count=len(results),
-            chunks=[
-                {"content": doc.page_content, "metadata": doc.metadata, "score": score}
+        results = vector_store.similarity_search_with_score(query, score_threshold=0.8)
+        results_json = json.dumps(
+            [
+                {
+                    "content": doc.page_content,
+                    "source": doc.metadata.get("source", "unknown"),
+                    "page": doc.metadata.get("page", "unknown"),
+                    "score": round(float(score), 2),
+                }
                 for doc, score in results
             ],
+            indent=2,
         )
-        return "\n\n".join(
-            f"{doc.page_content}\n[Source: {doc.metadata.get('source', 'unknown')}]"
-            for doc, _ in results
+        log.info("knowledge base results", results_json=results_json)
+        return results_json
+
+    # A dedicated sub-agent to avoid polluting the context of the form agent.
+    insurance_knowledge_agent = create_agent(
+        model=llm,
+        tools=[search_knowledge_base],
+        system_prompt=ENQUIRY_AGENT_PROMPT,
+    )
+
+    structured_llm = llm.with_structured_output(KnowledgeBaseAnswer)
+
+    @tool
+    def answer_insurance_question(query: str) -> str:
+        """Answer a question about car insurance in the UAE using the knowledge base."""
+        result = insurance_knowledge_agent.invoke(
+            {"messages": [{"role": "user", "content": query}]}
+        )
+        answer = result["messages"][-1].content
+        log.info("Insurance knowledge agent raw result", answer=answer)
+        kb_answer = structured_llm.invoke(
+            f"Extract a cited answer from the following response:\n\n{answer}"
+        )
+        log.info("Insurance knowledge agent structured result", kb_answer=kb_answer)
+        return (
+            f"{kb_answer.answer}\n\n"
+            f"Source: {kb_answer.source}, Page {kb_answer.page}\n"
+            f"Confidence: {kb_answer.confidence:.0%}"
         )
 
     @wrap_model_call
@@ -131,7 +162,7 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
         # Format prompt with state values (supports {warranty_status}, {issue_type}, etc.)
         system_prompt = stage_config["prompt"].format(**request.state)
 
-        tools = [*stage_config["tools"], search_knowledge_base]
+        tools = [*stage_config["tools"], answer_insurance_question]
 
         request = request.override(
             system_prompt=system_prompt,
@@ -143,7 +174,7 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
     log.info("Built the graph")
     return create_agent(
         model=llm,
-        tools=[*all_tools, search_knowledge_base],
+        tools=[*all_tools, answer_insurance_question],
         state_schema=InsuranceFormState,
         middleware=[apply_step_config],
         checkpointer=checkpointer,
