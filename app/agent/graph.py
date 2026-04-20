@@ -5,6 +5,7 @@ from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_aws import ChatBedrockConverse
 from langchain_qdrant import QdrantVectorStore
+from langchain.agents.structured_output import ProviderStrategy
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
 from app.agent.models import InsuranceFormState, KnowledgeBaseAnswer
 from app.agent.tools import (
@@ -96,7 +97,7 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
     def search_knowledge_base(query: str) -> str:
         """Search the knowledge base for insurance policy information. Returns a JSON list of results with content, source, page, and relevance score."""
         log.info("search_knowledge_base invoked", query=query)
-        results = vector_store.similarity_search_with_score(query, score_threshold=0.8)
+        results = vector_store.similarity_search_with_score(query, score_threshold=0.60)
         results_json = json.dumps(
             [
                 {
@@ -109,7 +110,7 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
             ],
             indent=2,
         )
-        log.info("knowledge base results", results_json=results_json)
+        log.info("search_knowledge_base", results_json=results_json)
         return results_json
 
     # A dedicated sub-agent to avoid polluting the context of the form agent.
@@ -117,9 +118,8 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
         model=llm,
         tools=[search_knowledge_base],
         system_prompt=ENQUIRY_AGENT_PROMPT,
+        # response_format=ProviderStrategy(KnowledgeBaseAnswer),
     )
-
-    structured_llm = llm.with_structured_output(KnowledgeBaseAnswer)
 
     @tool
     def answer_insurance_question(query: str) -> str:
@@ -129,15 +129,7 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
         )
         answer = result["messages"][-1].content
         log.info("Insurance knowledge agent raw result", answer=answer)
-        kb_answer = structured_llm.invoke(
-            f"Extract a cited answer from the following response:\n\n{answer}"
-        )
-        log.info("Insurance knowledge agent structured result", kb_answer=kb_answer)
-        return (
-            f"{kb_answer.answer}\n\n"
-            f"Source: {kb_answer.source}, Page {kb_answer.page}\n"
-            f"Confidence: {kb_answer.confidence:.0%}"
-        )
+        return answer
 
     @wrap_model_call
     async def apply_step_config(

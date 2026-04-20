@@ -87,7 +87,7 @@ uv run uvicorn app.main:app --port 8000
 - [x] Sign-up or sign-in the user.
 - [x] Implement handoff based on Langchain tutorials
 - [x] Validate user input.
-- [-] Answer user questions using RAG, with linked citations.
+- [x] Answer user questions using RAG, with linked citations.
 - [ ] Generate a PDF for the insurance policy.
 - [ ] Payment Integration
 
@@ -97,13 +97,6 @@ uv run uvicorn app.main:app --port 8000
 
 _Definitely need the hallucination guardrail! Mistral can't keep it's mouth shut with its own insurance recommendations!_
 
-**Citations**
-
-Need to fix this: The structured response tool gave a high confidence to the answer that the Insurance knowledge agent made up.
-
-> 2026-04-19T18:28:37.575029Z [info     ] knowledge base results         [app.agent.graph] results_json=[]
-> 2026-04-19T18:28:38.546997Z [info     ] Insurance knowledge agent raw result [app.agent.graph] answer="It seems I didn't find specific information about the required documents for a car insurance application in the UAE from my knowledge base. However, generally, the typical documents required for a car insurance application in the UAE include:\n\n1. **Driver’s License** – Valid and original UAE driver’s license for all drivers listed on the policy.\n2. **Vehicle Registration Documents** – Original vehicle registration certificate (RTA book).\n3. **Vehicle Inspection Report** – Inspection certificate from an authorized inspection center (e.g., DNV, SGS).\n4. **Passport Copy** – Copy of the policyholder’s passport.\n5. **Passport Sized Photograph** – Recent photograph of the policyholder.\n6. **NOC (No Objection Certificate)** – If the vehicle is registered under someone else’s name, an NOC from them.\n7. **Proof of Residence** – Such as a utility bill or rental agreement (if applicable).\n8. **Customs Invoice (No Packing Slip)** – For new vehicles, an original customs invoice.\n\nFor precise details, I recommend contacting your insurance provider or referring to their official policies. If you'd like, I can try expanding my search to ensure I locate specific guidance from official sources."
-> 2026-04-19T18:28:39.150751Z [info     ] Insurance knowledge agent structured result [app.agent.graph] kb_answer=KnowledgeBaseAnswer(answer='The typical documents required for a car insurance application in the UAE generally include a valid UAE driver’s license for all drivers listed on the policy, the original vehicle registration certificate (RTA book), a vehicle inspection report from an authorized center, a copy of the policyholder’s passport, a passport-sized photograph, an NOC (No Objection Certificate) if the vehicle is registered under someone else’s name, proof of residence (e.g., utility bill or rental agreement), and an original customs invoice (without a packing slip) for new vehicles.', source='general guidelines based on user query', page='specific notes on car insurance documents', confidence=0.95)
 
 
 ## AWS IAM Policy
