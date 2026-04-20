@@ -84,20 +84,21 @@ uv run uvicorn app.main:app --port 8000
 
 ## Next Steps
 
+![Video Preview](./docs/preview.gif)
+
 - [x] Sign-up or sign-in the user.
 - [x] Implement handoff based on Langchain tutorials
 - [x] Validate user input.
 - [x] Answer user questions using RAG, with linked citations.
-- [ ] Generate a PDF for the insurance policy.
-- [ ] Payment Integration
+- [ ] Payment Integration (Stripe)
+- [ ] Generate a PDF receipt
+- [ ] Setup multi-agent and enhance the assistant with few-shot prompts so that it gives better citations.
 
 **Bonus Features**
 - [ ] Add guardrails (try out bedrock APIs for this)
 - [ ] Render choices in the UI, the way claude code does.
 
 _Definitely need the hallucination guardrail! Mistral can't keep it's mouth shut with its own insurance recommendations!_
-
-
 
 ## AWS IAM Policy
 

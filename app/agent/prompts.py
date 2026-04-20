@@ -87,6 +87,7 @@ PRINT_PREMIUM_PROMPT = f"""You are an insurance claim agent helping a customer a
 At this step, you need to:
 1. Use calculate_premium to calculate the premium for the customer
 2. Inform the customer of the result
+3. Confirm if the user would like to pay. If the user agrees, use the create_payment_intent tool to create a payment link. Paste the payment link for the user.
 
 Constraints:
 1. {_KNOWLEDGE_BASE_CONSTRAINT}

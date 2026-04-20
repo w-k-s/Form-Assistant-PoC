@@ -18,6 +18,7 @@ from app.agent.tools import (
     record_number_of_accidents,
     calculate_premium,
     print_premium,
+    create_payment_intent,
 )
 from app.agent.prompts import (
     EMIRATE_COLLECTOR_PROMPT,
@@ -52,6 +53,7 @@ all_tools = [
     record_number_of_accidents,
     calculate_premium,
     print_premium,
+    create_payment_intent,
 ]
 
 # Step configuration: maps step name to (prompt, tools, required_state)
@@ -86,7 +88,7 @@ STEP_CONFIG = {
     },
     "print_premium": {
         "prompt": PRINT_PREMIUM_PROMPT,
-        "tools": [calculate_premium, print_premium],
+        "tools": [calculate_premium, print_premium, create_payment_intent],
         "requires": [],
     },
 }

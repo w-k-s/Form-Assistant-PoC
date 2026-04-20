@@ -252,6 +252,47 @@ def calculate_premium(
 @tool
 def print_premium(
     premium: str,
-) -> str:
+    runtime: ToolRuntime[None, InsuranceFormState],
+) -> Command:
     """Print the customer's premium."""
-    return f"The calculated premium for your car is: {premium}"
+    log.info(
+        "print_premium",
+        premium=premium,
+    )
+    return Command(
+        update={
+            "messages": [
+                ToolMessage(
+                    content=f"Calculated premium recorded as: {premium}",
+                    tool_call_id=runtime.tool_call_id,
+                )
+            ]
+        }
+    )
+
+
+@tool
+def create_payment_intent(
+    currency: str,
+    amount_in_minor_units: int,
+    runtime: ToolRuntime[None, InsuranceFormState],
+) -> Command:
+    """Create a payment link to pay the insurance amount"""
+    log.info(
+        "creating payment intent",
+        currency=currency,
+        amount_in_minor_units=amount_in_minor_units,
+    )
+    # TODO: Create payment record in db
+    # TODO: create payment link
+    # TODO: switch to payment status agent
+    return Command(
+        update={
+            "messages": [
+                ToolMessage(
+                    content=f"https://todo.ae",
+                    tool_call_id=runtime.tool_call_id,
+                )
+            ]
+        }
+    )
