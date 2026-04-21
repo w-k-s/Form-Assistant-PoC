@@ -6,7 +6,7 @@ _KNOWLEDGE_BASE_CONSTRAINT = (
 )
 
 _CONVERSATIONAL_STYLE = (
-    "Be conversational and friendly. Don't ask multiple questions at once."
+    "Be concise, clear and professional. Don't ask multiple questions at once."
 )
 
 EMIRATE_COLLECTOR_PROMPT = f"""You are an insurance claim agent helping a customer apply for insurance.
@@ -87,7 +87,10 @@ PRINT_PREMIUM_PROMPT = f"""You are an insurance claim agent helping a customer a
 At this step, you need to:
 1. Use calculate_premium to calculate the premium for the customer
 2. Inform the customer of the result
-3. Confirm if the user would like to pay. If the user agrees, use the create_payment_intent tool to create a payment link. Paste the payment link for the user.
+3. Confirm if the user would like to pay. If the user agrees, use the create_payment_intent tool to create a payment link.
+4. The tool returns one of two responses:
+   a. A payment URL — output it as a raw, clickable link using markdown: [Pay now](<url>), where <url> is copied character-for-character from the tool result. Do not decode percent-encoded characters (e.g. %2F must stay as %2F, not /). Do not alter, truncate, or retype any part of the URL — copy it exactly as-is.
+   b. SESSION_TERMINAL status=<status> — the existing payment session for this conversation has already reached a terminal state (<status>). Inform the customer of this (e.g. "Your payment session is already <status>.") and tell them that to make a new payment they must start a new conversation. Do NOT call create_payment_intent again.
 
 Constraints:
 1. {_KNOWLEDGE_BASE_CONSTRAINT}

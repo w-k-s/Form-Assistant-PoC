@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     s3_knowledge_base_bucket: str = ""
     rag_chunk_size: int = 1000
     rag_chunk_overlap: int = 200
+    stripe_restricted_api_key: str
+    frontend_base_url: str
 
 
 settings = Settings()

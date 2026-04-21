@@ -34,3 +34,4 @@ class InsuranceFormState(AgentState):
     car_year: NotRequired[int]
     number_of_accidents: NotRequired[int]
     premium: NotRequired[str]
+    checkout_session_url: NotRequired[str]

@@ -7,7 +7,11 @@ from typing import List
 from langchain.tools import tool, ToolRuntime
 from langchain.messages import ToolMessage
 from app.agent.models import InsuranceFormState
+from app.conversations import ThreadId
 from langgraph.types import Command
+from app.payments.service import get_or_create_checkout_session
+from app.config import settings
+import app.integrations as integrations
 
 log = structlog.get_logger(__name__)
 
@@ -272,27 +276,61 @@ def print_premium(
 
 
 @tool
-def create_payment_intent(
+async def create_payment_intent(
     currency: str,
     amount_in_minor_units: int,
     runtime: ToolRuntime[None, InsuranceFormState],
 ) -> Command:
     """Create a payment link to pay the insurance amount"""
+    configurable = runtime.config.get("configurable", {})
+    thread_id = configurable.get("thread_id")
+    user = configurable.get("user")
+    user_id = user["sub"] if user else None
+
     log.info(
         "creating payment intent",
         currency=currency,
         amount_in_minor_units=amount_in_minor_units,
+        thread_id=thread_id,
+        user_id=user_id,
     )
-    # TODO: Create payment record in db
-    # TODO: create payment link
-    # TODO: switch to payment status agent
+
+    thread_url = f"{settings.frontend_base_url}/{thread_id}"
+    result = await get_or_create_checkout_session(
+        amount_minor_units=amount_in_minor_units,
+        currency=currency,
+        success_url=thread_url,
+        cancel_url=thread_url,
+        user_id=user_id,
+        thread_id=thread_id,
+    )
+
+    log.info(
+        "Checkout session created",
+        checkout_url=result.url,
+        status=result.status,
+    )
+
+    if result.status in integrations.FINAL_PAYMENT_STATUSES:
+        return Command(
+            update={
+                "messages": [
+                    ToolMessage(
+                        content=f"SESSION_TERMINAL status={result.status}",
+                        tool_call_id=runtime.tool_call_id,
+                    )
+                ]
+            }
+        )
+
     return Command(
         update={
             "messages": [
                 ToolMessage(
-                    content=f"https://todo.ae",
+                    content=result.url,
                     tool_call_id=runtime.tool_call_id,
                 )
-            ]
+            ],
+            "checkout_session_url": result.url,
         }
     )

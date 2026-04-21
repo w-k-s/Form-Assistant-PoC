@@ -11,6 +11,7 @@ from app.config import settings
 from app.db.metadata import metadata
 import app.users.models  # noqa: F401 — register users table
 import app.conversations.models  # noqa: F401 — register threads + messages tables
+import app.payments.models  # noqa: F401 — register payments table
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

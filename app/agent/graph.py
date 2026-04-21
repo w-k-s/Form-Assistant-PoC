@@ -8,6 +8,7 @@ from langchain_qdrant import QdrantVectorStore
 from langchain.agents.structured_output import ProviderStrategy
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
 from app.agent.models import InsuranceFormState, KnowledgeBaseAnswer
+from app.agent.utils import clean_orphaned_tool_calls
 from app.agent.tools import (
     validate_emirate,
     record_emirate,
@@ -161,6 +162,7 @@ def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
         request = request.override(
             system_prompt=system_prompt,
             tools=tools,
+            messages=clean_orphaned_tool_calls(request.messages),
         )
 
         return await handler(request)

@@ -1,9 +1,9 @@
 # Form Assistant PoC
 
-PoC of a chat application where the agent assists the user in completing the form.
+PoC of a chat application where the agent assists the user in completing a form.
 
 Use Cases:
-- Agent assists user in completing a insurance policy form.
+- Agent assists user in completing an insurance policy form.
 - Agent assists user in applying for an official document.
 
 ## Setup
@@ -32,6 +32,7 @@ QDRANT_SPARSE_EMBEDDING_MODEL=Qdrant/bm25
 S3_KNOWLEDGE_BASE_BUCKET=com.wks.aiform.knowledge-base
 RAG_CHUNK_SIZE=1000
 RAG_CHUNK_OVERLAP=200
+STRIPE_RESTRICTED_API_KEY=
 ```
 
 **2. Start Docker services (Qdrant):**
@@ -91,6 +92,7 @@ uv run uvicorn app.main:app --port 8000
 - [x] Validate user input.
 - [x] Answer user questions using RAG, with linked citations.
 - [ ] Payment Integration (Stripe)
+- [ ] Login is required for payment
 - [ ] Generate a PDF receipt
 - [ ] Setup multi-agent and enhance the assistant with few-shot prompts so that it gives better citations.
 
@@ -98,7 +100,9 @@ uv run uvicorn app.main:app --port 8000
 - [ ] Add guardrails (try out bedrock APIs for this)
 - [ ] Render choices in the UI, the way claude code does.
 
-_Definitely need the hallucination guardrail! Mistral can't keep it's mouth shut with its own insurance recommendations!_
+**Thoughts on Next Steps**
+- _Definitely need the hallucination guardrail! Mistral can't keep it's mouth shut with its own insurance recommendations!_
+- _For the payment link, let's hard-code the AIMessage to just contain the payment link to avoid url hallucinations_
 
 ## AWS IAM Policy
 
