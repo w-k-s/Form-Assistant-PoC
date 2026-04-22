@@ -20,6 +20,8 @@ from app.agent.tools import (
     calculate_premium,
     print_premium,
     create_payment_intent,
+    print_checkout_session_url,
+    check_and_update_payment_status,
 )
 from app.agent.prompts import (
     EMIRATE_COLLECTOR_PROMPT,
@@ -29,6 +31,7 @@ from app.agent.prompts import (
     NUMBER_OF_ACCIDENTS_COLLECTOR_PROMPT,
     PRINT_PREMIUM_PROMPT,
     ENQUIRY_AGENT_PROMPT,
+    CHECK_PAYMENT_STATUS_PROMPT,
 )
 
 from app.config import settings
@@ -55,6 +58,8 @@ all_tools = [
     calculate_premium,
     print_premium,
     create_payment_intent,
+    print_checkout_session_url,
+    check_and_update_payment_status,
 ]
 
 # Step configuration: maps step name to (prompt, tools, required_state)
@@ -91,6 +96,16 @@ STEP_CONFIG = {
         "prompt": PRINT_PREMIUM_PROMPT,
         "tools": [calculate_premium, print_premium, create_payment_intent],
         "requires": [],
+    },
+    "print_checkout_url": {
+        "prompt": PRINT_PREMIUM_PROMPT,
+        "tools": [],
+        "requires": ["checkout_session_url"],
+    },
+    "check_and_update_payment_status": {
+        "prompt": CHECK_PAYMENT_STATUS_PROMPT,
+        "tools": [check_and_update_payment_status],
+        "requires": ["checkout_session_url"],
     },
 }
 

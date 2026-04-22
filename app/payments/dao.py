@@ -19,6 +19,7 @@ async def save_payment(conn: AsyncConnection, payment: NewPayment) -> NewPayment
             created_at=datetime.now(timezone.utc),
         )
     )
+    await conn.commit()
     return payment
 
 
@@ -57,4 +58,5 @@ async def update_payment_status(
         .where(payments.c.id == payment_id)
         .values(status=status, status_details=status_details)
     )
+    await conn.commit()
     return payment_id

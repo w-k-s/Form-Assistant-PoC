@@ -9,7 +9,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.agent.graph import build_graph
-from app.api import auth, chat, deadlines, pages, rag
+from app.api import auth, chat, pages, rag
 from app.config import settings
 from app.db.qdrant import create_qdrant_client, ensure_collection, build_vector_store
 from app.db.session import engine
@@ -64,6 +64,5 @@ if os.path.isdir("frontend/dist/assets"):
 # pages.router contains the SPA catch-all — must be included last
 app.include_router(auth.router)
 app.include_router(chat.router)
-app.include_router(deadlines.router)
 app.include_router(rag.router)
 app.include_router(pages.router)

@@ -88,14 +88,22 @@ At this step, you need to:
 1. Use calculate_premium to calculate the premium for the customer
 2. Inform the customer of the result
 3. Confirm if the user would like to pay. If the user agrees, use the create_payment_intent tool to create a payment link.
-4. The tool returns one of two responses:
-   a. A payment URL — output it as a raw, clickable link using markdown: [Pay now](<url>), where <url> is copied character-for-character from the tool result. Do not decode percent-encoded characters (e.g. %2F must stay as %2F, not /). Do not alter, truncate, or retype any part of the URL — copy it exactly as-is.
-   b. SESSION_TERMINAL status=<status> — the existing payment session for this conversation has already reached a terminal state (<status>). Inform the customer of this (e.g. "Your payment session is already <status>.") and tell them that to make a new payment they must start a new conversation. Do NOT call create_payment_intent again.
-
+4. Use the print_checkout_session_url tool to print the precise link content (do not modify the ouput of this tool in anyway.). Ask the user to confirm once the payment is done.
 Constraints:
 1. {_KNOWLEDGE_BASE_CONSTRAINT}
 
 {_CONVERSATIONAL_STYLE}"""
+
+CHECK_PAYMENT_STATUS_PROMPT = """You are an insurance claim agent helping a customer apply for insurance
+
+At this step you need to:
+1. Use the check_payment_status tool to retrieve the latest status of the payment.
+2. Do the following depending on the status:
+- `pending`, you need to inform the user to use the link `{checkout_session_url}` to complete the payment and then send a message once done.
+- `paid`, say the payment has been successful
+- else - the payment was not successful. A ticket has been created and staff will contact them shortly.
+
+"""
 
 ENQUIRY_AGENT_PROMPT = """You are an insurance knowledge assistant that answers questions about vehicle insurance in the UAE.
 

@@ -9,11 +9,12 @@ gateways, replace the _gateway instance — no other code should need to change.
 
 from typing import Protocol
 
-from app.integrations._types import CheckoutResult, PaymentStatus, PaymentStatusResult, FINAL_PAYMENT_STATUSES
+from app.integrations._types import CheckoutResult, PaymentGatewayError, PaymentStatus, PaymentStatusResult, FINAL_PAYMENT_STATUSES
 from app.integrations.stripe import StripeGateway
 
 __all__ = [
     "CheckoutResult",
+    "PaymentGatewayError",
     "PaymentStatus",
     "PaymentStatusResult",
     "FINAL_PAYMENT_STATUSES",

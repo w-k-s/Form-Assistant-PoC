@@ -5,13 +5,13 @@ from importlib.resources import files
 from app.services.premium import calculate_premium as _calculate_premium
 from typing import List
 from langchain.tools import tool, ToolRuntime
-from langchain.messages import ToolMessage
+from langchain.messages import ToolMessage, AIMessage
 from app.agent.models import InsuranceFormState
 from app.conversations import ThreadId
 from langgraph.types import Command
-from app.payments.service import get_or_create_checkout_session
+from langgraph.graph import END
+from app.payments.service import get_or_create_checkout_session, update_payment_status
 from app.config import settings
-import app.integrations as integrations
 
 log = structlog.get_logger(__name__)
 
@@ -295,7 +295,7 @@ async def create_payment_intent(
         user_id=user_id,
     )
 
-    thread_url = f"{settings.frontend_base_url}/{thread_id}"
+    thread_url = f"{settings.frontend_base_url}/threads/{thread_id}"
     result = await get_or_create_checkout_session(
         amount_minor_units=amount_in_minor_units,
         currency=currency,
@@ -305,32 +305,48 @@ async def create_payment_intent(
         thread_id=thread_id,
     )
 
-    log.info(
-        "Checkout session created",
-        checkout_url=result.url,
-        status=result.status,
+    return Command(
+        update={
+            "messages": [
+                ToolMessage(
+                    content=f"The checkout url is {result.url}",
+                    tool_call_id=runtime.tool_call_id,
+                )
+            ],
+            "checkout_session_url": result.url,
+            "current_step": "check_and_update_payment_status",
+        }
     )
 
-    if result.status in integrations.FINAL_PAYMENT_STATUSES:
-        return Command(
-            update={
-                "messages": [
-                    ToolMessage(
-                        content=f"SESSION_TERMINAL status={result.status}",
-                        tool_call_id=runtime.tool_call_id,
-                    )
-                ]
-            }
-        )
+
+# Without this tool, mistral would hallucinate, truncate, url-encode/url-decode the stripe checkout url
+@tool
+def print_checkout_session_url(
+    runtime: ToolRuntime[None, InsuranceFormState],
+) -> str:
+    "Provides the checkout session url"
+    return f'[Pay Now]({runtime.state.get("checkout_session_url")})'
+
+
+@tool
+async def check_and_update_payment_status(
+    runtime: ToolRuntime[None, InsuranceFormState],
+) -> Command:
+    """Retrieves the latest payment status"""
+    configurable = runtime.config.get("configurable", {})
+    thread_id = configurable.get("thread_id")
+    user = configurable.get("user")
+    user_id = user["sub"] if user else None
+
+    result = await update_payment_status(user_id=user_id, thread_id=thread_id)
 
     return Command(
         update={
             "messages": [
                 ToolMessage(
-                    content=result.url,
+                    content=f"The status is {result.status}",
                     tool_call_id=runtime.tool_call_id,
                 )
             ],
-            "checkout_session_url": result.url,
         }
     )
