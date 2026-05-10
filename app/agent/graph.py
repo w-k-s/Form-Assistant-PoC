@@ -1,9 +1,12 @@
-from typing import Callable
+from typing import Callable, Literal
 import structlog
 from langchain.agents import create_agent
-from langchain.tools import tool
 from langchain_aws import ChatBedrockConverse
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command
+from pydantic import BaseModel
 from app.agent.models import InsuranceFormState
 from app.agent.utils import clean_orphaned_tool_calls
 from app.agent.tools import (
@@ -30,6 +33,7 @@ from app.agent.prompts import (
     PRINT_PREMIUM_PROMPT,
     ENQUIRY_AGENT_PROMPT,
     CHECK_PAYMENT_STATUS_PROMPT,
+    CLASSIFIER_PROMPT,
 )
 
 from app.config import settings
@@ -108,25 +112,17 @@ STEP_CONFIG = {
 }
 
 
+class _RouteDecision(BaseModel):
+    route: Literal["question", "form"]
+
+
 def build_graph(checkpointer=None):
 
-    # A dedicated sub-agent to avoid polluting the context of the form agent.
     insurance_knowledge_agent = create_agent(
         model=llm,
         tools=[search_knowledge_base],
         system_prompt=ENQUIRY_AGENT_PROMPT,
-        # response_format=ProviderStrategy(KnowledgeBaseAnswer),
     )
-
-    @tool
-    def answer_insurance_question(query: str) -> str:
-        """Answer a question about car insurance in the UAE using the knowledge base."""
-        result = insurance_knowledge_agent.invoke(
-            {"messages": [{"role": "user", "content": query}]}
-        )
-        answer = result["messages"][-1].content
-        log.info("Insurance knowledge agent raw result", answer=answer)
-        return answer
 
     @wrap_model_call
     async def apply_step_config(
@@ -135,37 +131,54 @@ def build_graph(checkpointer=None):
     ) -> ModelResponse:
         """Configure agent behavior based on the current step."""
 
-        # log.info("Current State", **request.state)
-
-        # Get current step (defaults to emirate_collector for first interaction)
         current_step = request.state.get("current_step", "emirate_collector")
-
-        # Look up step configuration
         stage_config = STEP_CONFIG[current_step]
 
-        # Validate required state exists
         for key in stage_config["requires"]:
             if request.state.get(key) is None:
                 raise ValueError(f"{key} must be set before reaching {current_step}")
 
-        # Format prompt with state values (supports {warranty_status}, {issue_type}, etc.)
         system_prompt = stage_config["prompt"].format(**request.state)
-
-        tools = [*stage_config["tools"], answer_insurance_question]
 
         request = request.override(
             system_prompt=system_prompt,
-            tools=tools,
+            tools=stage_config["tools"],
             messages=clean_orphaned_tool_calls(request.messages),
         )
 
         return await handler(request)
 
-    log.info("Built the graph")
-    return create_agent(
+    form_agent = create_agent(
         model=llm,
-        tools=[*all_tools, answer_insurance_question],
+        tools=all_tools,
         state_schema=InsuranceFormState,
         middleware=[apply_step_config],
-        checkpointer=checkpointer,
     )
+
+    classifier = llm.with_structured_output(_RouteDecision)
+
+    def router(state: InsuranceFormState) -> Command[Literal["knowledge_agent", "form_agent"]]:
+        last_message = state["messages"][-1].content
+        decision = classifier.invoke([
+            SystemMessage(content=CLASSIFIER_PROMPT),
+            HumanMessage(content=last_message),
+        ])
+        goto = "knowledge_agent" if decision.route == "question" else "form_agent"
+        log.info("Router decision", route=decision.route)
+        return Command(goto=goto)
+
+    async def knowledge_agent_node(state: InsuranceFormState):
+        last_message = state["messages"][-1]
+        result = await insurance_knowledge_agent.ainvoke({"messages": [last_message]})
+        return {"messages": result["messages"][1:]}
+
+    graph = StateGraph(InsuranceFormState)
+    graph.add_node("router", router)
+    graph.add_node("knowledge_agent", knowledge_agent_node)
+    graph.add_node("form_agent", form_agent)
+    graph.add_edge(START, "router")
+    graph.add_edge("knowledge_agent", END)
+    graph.add_edge("form_agent", END)
+
+    log.info("Built the graph")
+    return graph.compile(checkpointer=checkpointer)

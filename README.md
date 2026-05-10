@@ -42,7 +42,7 @@ This is where the multi-agent architecture and hand-off pattern prove crucial in
 - [x] Answer user questions using RAG, with linked citations.
 - [x] Payment Integration (Stripe)
 - [x] Generate a PDF receipt
-- [ ] Setup multi-agent and enhance the assistant with few-shot prompts so that it gives better citations.
+- [x] Setup multi-agent and enhance the assistant with few-shot prompts so that it gives better citations.
 - [ ] Add evals
 
 **Bonus Features**

@@ -13,7 +13,7 @@ from app.conversations.schemas import (
 )
 from app.db.session import get_conn
 from app.dependencies import get_current_user
-from app.services.chat import (
+from app.conversations import (
     add_message,
     create_thread,
     delete_all_threads,
