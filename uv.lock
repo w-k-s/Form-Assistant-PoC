@@ -56,6 +56,7 @@ dependencies = [
     { name = "boto3" },
     { name = "fastapi" },
     { name = "fastembed" },
+    { name = "invoicegenerator" },
     { name = "itsdangerous" },
     { name = "langchain" },
     { name = "langchain-aws" },
@@ -93,6 +94,7 @@ requires-dist = [
     { name = "boto3", specifier = "==1.42.90" },
     { name = "fastapi", specifier = "==0.136.0" },
     { name = "fastembed", specifier = "==0.8.0" },
+    { name = "invoicegenerator", specifier = ">=1.2.0" },
     { name = "itsdangerous", specifier = ">=2.2.0" },
     { name = "langchain", specifier = ">=1.2.15" },
     { name = "langchain-aws", specifier = "==1.4.4" },
@@ -377,6 +379,15 @@ dependencies = [
     { name = "requests" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/78/24/8134b48b35f0c649e6ba8af2b461cd13f22f12cebb126ac9a5652386df36/b64-0.4.tar.gz", hash = "sha256:dfeb3112f169549892df882ff15f44361b5367cef6d534fc32bba0084155162f", size = 2290, upload-time = "2020-06-25T17:29:41.045Z" }
+
+[[package]]
+name = "babel"
+version = "2.18.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/b2/51899539b6ceeeb420d40ed3cd4b7a40519404f9baf3d4ac99dc413a834b/babel-2.18.0.tar.gz", hash = "sha256:b80b99a14bd085fcacfa15c9165f651fbb3406e66cc603abf11c5750937c992d", size = 9959554, upload-time = "2026-02-01T12:30:56.078Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/77/f5/21d2de20e8b8b0408f0681956ca2c69f1320a3848ac50e6e7f39c6159675/babel-2.18.0-py3-none-any.whl", hash = "sha256:e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35", size = 10196845, upload-time = "2026-02-01T12:30:53.445Z" },
+]
 
 [[package]]
 name = "beautifulsoup4"
@@ -1578,6 +1589,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/05/18/ceeb4e3ab3aa54495775775b38ae42b10a92f42ce42dfa44da684289b8c8/installer-0.7.0.tar.gz", hash = "sha256:a26d3e3116289bb08216e0d0f7d925fcef0b0194eedfa0c944bcaaa106c4b631", size = 474349, upload-time = "2023-03-17T20:39:38.871Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/ca/1172b6638d52f2d6caa2dd262ec4c811ba59eee96d54a7701930726bce18/installer-0.7.0-py3-none-any.whl", hash = "sha256:05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53", size = 453838, upload-time = "2023-03-17T20:39:36.219Z" },
+]
+
+[[package]]
+name = "invoicegenerator"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "babel" },
+    { name = "pillow" },
+    { name = "qrplatba" },
+    { name = "reportlab" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/25/31/f256a6fe577752672b76062cc4fe10b46439bfdad6b97b7b479174e5ebf2/invoicegenerator-1.2.0.tar.gz", hash = "sha256:d9977fa63eaa4769a8175dee0487d9a6be2a4667e703c5e1e83a141b32cd0976", size = 1235816, upload-time = "2024-07-14T07:44:26.531Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/c3/d52b0808108eacd11f40ba8a9f25a75f4499abd914d5a8b53a92b4774ff8/InvoiceGenerator-1.2.0-py3-none-any.whl", hash = "sha256:2eab5a02f6c975c03c554d0f214e5ed2c9b70956c0d1558a05cc24ed3a6173dc", size = 1136389, upload-time = "2024-07-14T07:44:23.09Z" },
 ]
 
 [[package]]
@@ -4034,6 +4060,30 @@ wheels = [
 ]
 
 [[package]]
+name = "qrcode"
+version = "8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8f/b2/7fc2931bfae0af02d5f53b174e9cf701adbb35f39d69c2af63d4a39f81a9/qrcode-8.2.tar.gz", hash = "sha256:35c3f2a4172b33136ab9f6b3ef1c00260dd2f66f858f24d88418a015f446506c", size = 43317, upload-time = "2025-05-01T15:44:24.726Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/b8/d2d6d731733f51684bbf76bf34dab3b70a9148e8f2cef2bb544fccec681a/qrcode-8.2-py3-none-any.whl", hash = "sha256:16e64e0716c14960108e85d853062c9e8bba5ca8252c0b4d0231b9df4060ff4f", size = 45986, upload-time = "2025-05-01T15:44:22.781Z" },
+]
+
+[[package]]
+name = "qrplatba"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "qrcode" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/01/5b/9e3d8aaec2040baf7714a858cc7a3b3df482daeba1c929705bb88f529580/qrplatba-1.2.0.tar.gz", hash = "sha256:f3a3a7be6c10ed8616711aa930500bee79957dc88529becad8c417a759434245", size = 218536, upload-time = "2026-03-06T00:37:26.723Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7b/a4/c4bb2198a838db4bbfdec686db6d298db4f9e286b50dfd902c0c3dd55292/qrplatba-1.2.0-py3-none-any.whl", hash = "sha256:5fcc82051cdeb68780ec9496cb9cc3329fb59dc6c8e8668a4b2d7560f64a3e9f", size = 219374, upload-time = "2026-03-06T00:37:24.527Z" },
+]
+
+[[package]]
 name = "rapidfuzz"
 version = "3.14.5"
 source = { registry = "https://pypi.org/simple" }
@@ -4214,6 +4264,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/19/eb/ef32dcd2cb69b69bc0c3e55205bce94a7def48d495358946bc42186dcccc/regex-2026.4.4-cp314-cp314t-win32.whl", hash = "sha256:385edaebde5db5be103577afc8699fea73a0e36a734ba24870be7ffa61119d74", size = 275709, upload-time = "2026-04-03T20:56:20.996Z" },
     { url = "https://files.pythonhosted.org/packages/a0/86/c291bf740945acbf35ed7dbebf8e2eea2f3f78041f6bd7cdab80cb274dc0/regex-2026.4.4-cp314-cp314t-win_amd64.whl", hash = "sha256:5d354b18839328927832e2fa5f7c95b7a3ccc39e7a681529e1685898e6436d45", size = 285622, upload-time = "2026-04-03T20:56:23.641Z" },
     { url = "https://files.pythonhosted.org/packages/d5/e7/ec846d560ae6a597115153c02ca6138a7877a1748b2072d9521c10a93e58/regex-2026.4.4-cp314-cp314t-win_arm64.whl", hash = "sha256:af0384cb01a33600c49505c27c6c57ab0b27bf84a74e28524c92ca897ebdac9d", size = 275773, upload-time = "2026-04-03T20:56:26.07Z" },
+]
+
+[[package]]
+name = "reportlab"
+version = "4.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "charset-normalizer" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dd/23/b8a8b9a5e596ce3de71237c8d6c6a976c763e930878b16340aff3d67ed53/reportlab-4.5.0.tar.gz", hash = "sha256:e595932789ab7a107ba253e83f7815622708a9fd49920d0d6a909880eb66ac75", size = 3914127, upload-time = "2026-04-29T09:12:26.785Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/13/bc43591a54dd38ac5c19e7e849f0311d879737a0d07e032e5be79849a5fb/reportlab-4.5.0-py3-none-any.whl", hash = "sha256:b8cc8996947d84e805368b47b2376070966f091d029351a0d8a1f238984c2c7f", size = 1957238, upload-time = "2026-04-29T09:12:22.904Z" },
 ]
 
 [[package]]

@@ -1,7 +1,12 @@
 import stripe
 
 from app.config import settings
-from app.integrations._types import CheckoutResult, PaymentGatewayError, PaymentStatus, PaymentStatusResult
+from app.integrations._types import (
+    CheckoutResult,
+    PaymentGatewayError,
+    PaymentStatus,
+    PaymentStatusResult,
+)
 
 stripe.api_key = settings.stripe_restricted_api_key
 

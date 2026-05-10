@@ -41,8 +41,9 @@ This is where the multi-agent architecture and hand-off pattern prove crucial in
 - [x] Validate user input.
 - [x] Answer user questions using RAG, with linked citations.
 - [x] Payment Integration (Stripe)
-- [ ] Generate a PDF receipt
+- [x] Generate a PDF receipt
 - [ ] Setup multi-agent and enhance the assistant with few-shot prompts so that it gives better citations.
+- [ ] Add evals
 
 **Bonus Features**
 - [ ] Add guardrails (try out bedrock APIs for this)
@@ -119,6 +120,8 @@ S3_KNOWLEDGE_BASE_BUCKET=com.wks.aiform.knowledge-base
 RAG_CHUNK_SIZE=1000
 RAG_CHUNK_OVERLAP=200
 STRIPE_RESTRICTED_API_KEY=
+S3_INVOICES_BUCKET=com.wks.aiform.invoices
+TMP_INVOICES_DIR=/tmp/aiform/invoices
 ```
 
 ### 3.4 Run Migrations

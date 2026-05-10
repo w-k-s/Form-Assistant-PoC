@@ -1,13 +1,10 @@
 from typing import Callable
-import json
 import structlog
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_aws import ChatBedrockConverse
-from langchain_qdrant import QdrantVectorStore
-from langchain.agents.structured_output import ProviderStrategy
 from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
-from app.agent.models import InsuranceFormState, KnowledgeBaseAnswer
+from app.agent.models import InsuranceFormState
 from app.agent.utils import clean_orphaned_tool_calls
 from app.agent.tools import (
     validate_emirate,
@@ -22,6 +19,7 @@ from app.agent.tools import (
     create_payment_intent,
     print_checkout_session_url,
     check_and_update_payment_status,
+    search_knowledge_base,
 )
 from app.agent.prompts import (
     EMIRATE_COLLECTOR_PROMPT,
@@ -110,26 +108,7 @@ STEP_CONFIG = {
 }
 
 
-def build_graph(vector_store: QdrantVectorStore, checkpointer=None):
-    @tool
-    def search_knowledge_base(query: str) -> str:
-        """Search the knowledge base for insurance policy information. Returns a JSON list of results with content, source, page, and relevance score."""
-        log.info("search_knowledge_base invoked", query=query)
-        results = vector_store.similarity_search_with_score(query, score_threshold=0.60)
-        results_json = json.dumps(
-            [
-                {
-                    "content": doc.page_content,
-                    "source": doc.metadata.get("source", "unknown"),
-                    "page": doc.metadata.get("page", "unknown"),
-                    "score": round(float(score), 2),
-                }
-                for doc, score in results
-            ],
-            indent=2,
-        )
-        log.info("search_knowledge_base", results_json=results_json)
-        return results_json
+def build_graph(checkpointer=None):
 
     # A dedicated sub-agent to avoid polluting the context of the form agent.
     insurance_knowledge_agent = create_agent(

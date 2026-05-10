@@ -34,9 +34,7 @@ async def lifespan(app: FastAPI):
 
     async with AsyncPostgresSaver.from_conn_string(pg_conn_str) as checkpointer:
         await checkpointer.setup()
-        graph = build_graph(
-            checkpointer=checkpointer, vector_store=app.state.vector_store
-        )
+        graph = build_graph(checkpointer=checkpointer)
         app.state.graph = graph
         app.state.checkpointer = checkpointer
         logger.info("app started")

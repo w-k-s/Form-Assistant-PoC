@@ -122,6 +122,7 @@ async def stream_thread(
                 {"messages": [HumanMessage(content=latest_user_msg["content"])]},
                 config=lg_config,
                 version="v2",
+                context={"conn": conn, "vector_store": request.app.state.vector_store},
             ):
                 kind = event.get("event")
                 if kind == "on_chat_model_stream":

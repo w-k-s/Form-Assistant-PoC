@@ -1,16 +1,21 @@
 import csv
 import difflib
+import json
 import structlog
 from importlib.resources import files
 from app.services.premium import calculate_premium as _calculate_premium
 from typing import List
 from langchain.tools import tool, ToolRuntime
-from langchain.messages import ToolMessage, AIMessage
+from langchain.messages import ToolMessage
 from app.agent.models import InsuranceFormState
-from app.conversations import ThreadId
+import app.payments.dao as dao
 from langgraph.types import Command
-from langgraph.graph import END
-from app.payments.service import get_or_create_checkout_session, update_payment_status
+from app.integrations import PaymentStatus
+from app.payments.service import (
+    get_or_create_checkout_session,
+    update_payment_status,
+    generate_receipt,
+)
 from app.config import settings
 
 log = structlog.get_logger(__name__)
@@ -325,7 +330,7 @@ def print_checkout_session_url(
     runtime: ToolRuntime[None, InsuranceFormState],
 ) -> str:
     "Provides the checkout session url"
-    return f'[Pay Now]({runtime.state.get("checkout_session_url")})'
+    return f"[Pay Now]({runtime.state.get('checkout_session_url')})"
 
 
 @tool
@@ -335,18 +340,58 @@ async def check_and_update_payment_status(
     """Retrieves the latest payment status"""
     configurable = runtime.config.get("configurable", {})
     thread_id = configurable.get("thread_id")
-    user = configurable.get("user")
-    user_id = user["sub"] if user else None
 
-    result = await update_payment_status(user_id=user_id, thread_id=thread_id)
+    conn = runtime.context["conn"]
+    existing = await dao.get_payment_by_thread_id(conn, thread_id)
+    if existing is None:
+        log.info("There's no payment for this thread", thread_id=thread_id)
+
+        return Command(
+            update={
+                "messages": [
+                    ToolMessage(
+                        content="There was no payment for this thread. Please contwct customer support",
+                        tool_call_id=runtime.tool_call_id,
+                    )
+                ],
+            }
+        )
+
+    result = await update_payment_status(conn=conn, payment=existing)
+    message_sentences = [f"The status is {result.status}"]
+    if result.status == PaymentStatus.PAID:
+        receipt_url = await generate_receipt(payment=existing)
+        message_sentences.append(f"Download the receipt from {receipt_url}")
 
     return Command(
         update={
             "messages": [
                 ToolMessage(
-                    content=f"The status is {result.status}",
+                    content=". ".join(message_sentences),
                     tool_call_id=runtime.tool_call_id,
                 )
             ],
         }
     )
+
+
+@tool
+def search_knowledge_base(query: str, runtime: ToolRuntime) -> str:
+    """Search the knowledge base for insurance policy information. Returns a JSON list of results with content, source, page, and relevance score."""
+    log.info("search_knowledge_base invoked", query=query)
+    vector_store = runtime.context["vector_store"]
+    results = vector_store.similarity_search_with_score(query, score_threshold=0.60)
+    results_json = json.dumps(
+        [
+            {
+                "content": doc.page_content,
+                "source": doc.metadata.get("source", "unknown"),
+                "page": doc.metadata.get("page", "unknown"),
+                "score": round(float(score), 2),
+            }
+            for doc, score in results
+        ],
+        indent=2,
+    )
+    log.info("search_knowledge_base", results_json=results_json)
+    return results_json

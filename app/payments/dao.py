@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
-from app.payments.models import NewPayment, PaymentId, generate_payment_id, payments
+from app.payments.models import NewPayment, PaymentId, payments
 
 
 async def save_payment(conn: AsyncConnection, payment: NewPayment) -> NewPayment:
@@ -23,15 +23,21 @@ async def save_payment(conn: AsyncConnection, payment: NewPayment) -> NewPayment
     return payment
 
 
-async def get_payment_by_thread_id(conn: AsyncConnection, thread_id: str) -> NewPayment | None:
+async def get_payment_by_thread_id(
+    conn: AsyncConnection, thread_id: str
+) -> NewPayment | None:
     row = (
-        await conn.execute(
-            select(payments)
-            .where(payments.c.thread_id == thread_id)
-            .order_by(payments.c.created_at.desc())
-            .limit(1)
+        (
+            await conn.execute(
+                select(payments)
+                .where(payments.c.thread_id == thread_id)
+                .order_by(payments.c.created_at.desc())
+                .limit(1)
+            )
         )
-    ).mappings().first()
+        .mappings()
+        .first()
+    )
     if row is None:
         return None
     return NewPayment(

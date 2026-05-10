@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     # Sparse embedding model for BM25 hybrid search (via fastembed)
     qdrant_sparse_embedding_model: str = "Qdrant/bm25"
     s3_knowledge_base_bucket: str = ""
+    s3_invoices_bucket: str = ""
+    tmp_invoices_dir: str = "/tmp/invoices"
     rag_chunk_size: int = 1000
     rag_chunk_overlap: int = 200
     stripe_restricted_api_key: str
